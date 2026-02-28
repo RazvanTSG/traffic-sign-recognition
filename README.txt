@@ -1,52 +1,36 @@
-Approach 1: Similar to the CS50 Course
+# GTSRB Traffic Sign Recognition & Architecture Optimization
 
-Stats: accuracy: 0.9662 - loss: 0.1318
-4ms/Epoch step; 1ms/step at predicting ( 4 / 1 timp )
+**Objective:** Design, evaluate, and optimize a Convolutional Neural Network (CNN) for recognizing 43 categories of traffic signs from the German Traffic Sign Recognition Benchmark (GTSRB).
 
-Approach 2: Similar to CS50 approach, but making it more complex ( more layers, more filters):
+## Engineering Methodology (Architecture Search)
+Instead of relying on a standard template, I conducted a systematic architecture search focusing on the trade-off between **Accuracy** and **Inference Latency (ms/step)**.
 
-2.1: Incercam more filters:
-accuracy: 0.9651 - loss: 0.1527
-8ms/Epoch step; 2ms/step at predicting
+| Exp | Modification | Accuracy | Inference Latency | Conclusion |
+| :--- | :--- | :--- | :--- | :--- |
+| Baseline | Basic CS50 Architecture | 96.6% | 1.0 ms | Fast, but struggles with nuanced signs. |
+| 2.2 | Added Conv Layer (32 filters, no pool) | 98.5% | 1.0 ms | Better feature extraction without speed penalty. |
+| 2.5 | Increased to 64 filters + pooling | 98.8% | 2.0 ms | Excellent accuracy, acceptable latency hit. |
+| 2.8 | Added Rotation/Zoom Augmentation | 95.2% | 2.0 ms | Performance dropped. *Observation: Traffic signs are orientation-dependent (e.g., Left vs Right turn).* |
+| **2.9** | **Changed initial Kernel to (5,5)** | **99.1%** | **2.0 ms** | **Optimal Setup.** Wider initial receptive field captures sign shapes better. Loss: 0.0414. |
 
-2.2 Adaugam Inca un layer, tot cu 32 filters, nu dam pool inca o data:
-accuracy: 0.9852 - loss: 0.0596
-4 / 1 timp
+## Explainable AI (Grad-CAM Integration)
+To verify that the CNN is learning relevant features (e.g., the symbol on the sign) and not just background noise, I implemented a **Gradient-weighted Class Activation Mapping (Grad-CAM)** script.
 
-2.3 Adaugam Inca un layer, tot cu 32 filters, dam pool
-accuracy: 0.9768 - loss: 0.0898
-3 / 2 ms
+The `gradcam.py` tool extracts the feature maps from the final convolutional layer and overlays an attention heatmap onto the original image.
 
-2.4 La ultimul layer, ii punem 64 filters, pt detalii mai amanuntite la al doilea layer, nu dam pool
-accuracy: 0.9845 - loss: 0.0677
-6.5 / 2 ms
+## Repository Structure
+* `traffic.py`: The training pipeline with the optimized (Exp 2.9) CNN architecture.
+* `gradcam.py`: Diagnostic tool for visualizing the network's attention regions.
+* `requirements.txt`: Environment dependencies.
 
-2.5 La ultimul layer, ii punem 64 filters, pt detalii mai amanuntite, dam pool dupa
-accuracy: 0.9885 - loss: 0.053
-4 / 2 ms
+## Dataset Setup
+The GTSRB dataset is not included in this repository due to size constraints. 
+To run this project:
+1. Download the dataset from [Kaggle - GTSRB](https://www.kaggle.com/datasets/meowmeowmeowmeowmeow/gtsrb-german-traffic-sign).
+2. Extract the contents into a folder named `data/` in the root directory.
+3. Ensure the structure is `data/train/0...42/`.
 
-2.6 Same ca la 2.5, dar cu dropout de 0.3 in loc de 0.5
-accuracy: 0.9854 - loss: 0.0621
-4 / 2 ms
-
-2.7 Cu 0.4 Dropout:
-accuracy: 0.9886 - loss: 0.0511
-
-2.8 Incercam Augmentation Layers ( rotim putin semnele )
-accuracy: 0.9529 - loss: 0.1777
-6 / 2 ms
-
-2.9 Incercam primul Kernel cu (5,5) in loc de (3,3)                  ---> The best
-accuracy: 0.9910 - loss: 0.0414
-4 / 2
-
-2.10 (6,6)
-accuracy: 0.9882 - loss: 0.0545
-4 / 2
-
-2.11 (5,5) si (5,5) la al doilea layer
-accuracy: 0.9879 - loss: 0.0604
-4 / 2
-
-
-
+## Usage
+**1. Train the model:**
+```bash
+python traffic.py data_directory model.h5
