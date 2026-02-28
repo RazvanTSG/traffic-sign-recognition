@@ -1,36 +1,47 @@
-# GTSRB Traffic Sign Recognition & Architecture Optimization
+# GTSRB Traffic Sign Recognition
+**CNN Architecture Optimization & Interpretability (Grad-CAM)**
 
-**Objective:** Design, evaluate, and optimize a Convolutional Neural Network (CNN) for recognizing 43 categories of traffic signs from the German Traffic Sign Recognition Benchmark (GTSRB).
+## Objective
+The goal of this project is to design and optimize a Convolutional Neural Network (CNN) to classify 43 categories from the **German Traffic Sign Recognition Benchmark (GTSRB)**. The focus is on finding the optimal balance between **predictive accuracy** and **inference latency**.
 
-## Engineering Methodology (Architecture Search)
-Instead of relying on a standard template, I conducted a systematic architecture search focusing on the trade-off between **Accuracy** and **Inference Latency (ms/step)**.
+## Engineering Methodology: Architecture Search
+Instead of using a generic template, I conducted a systematic architecture search to identify the most efficient model for real-time deployment.
 
-| Exp | Modification | Accuracy | Inference Latency | Conclusion |
+
+
+| Exp | Modification | Accuracy | Latency | Engineering Verdict |
 | :--- | :--- | :--- | :--- | :--- |
-| Baseline | Basic CS50 Architecture | 96.6% | 1.0 ms | Fast, but struggles with nuanced signs. |
-| 2.2 | Added Conv Layer (32 filters, no pool) | 98.5% | 1.0 ms | Better feature extraction without speed penalty. |
-| 2.5 | Increased to 64 filters + pooling | 98.8% | 2.0 ms | Excellent accuracy, acceptable latency hit. |
-| 2.8 | Added Rotation/Zoom Augmentation | 95.2% | 2.0 ms | Performance dropped. *Observation: Traffic signs are orientation-dependent (e.g., Left vs Right turn).* |
-| **2.9** | **Changed initial Kernel to (5,5)** | **99.1%** | **2.0 ms** | **Optimal Setup.** Wider initial receptive field captures sign shapes better. Loss: 0.0414. |
+| **Baseline** | Standard 2-Layer CNN | 96.6% | 1.0 ms | Fast, but lacks depth for complex features. |
+| **2.2** | Added Conv (32 feat) | 98.5% | 1.0 ms | Improved feature extraction with zero overhead. |
+| **2.5** | 64 filters + Pooling | 98.8% | 2.0 ms | High precision; acceptable latency trade-off. |
+| **2.8** | Augmentation (Rot/Zoom) | 95.2% | 2.0 ms | **FAILED.** Orientation is a critical feature. |
+| **2.9** | **Initial Kernel (5x5)** | **99.1%** | **2.0 ms** | **WINNER.** Larger initial receptive field. |
+
+> **Critical Observation (Exp 2.8):** Implementing horizontal flips and heavy rotations significantly degraded performance. In traffic sign recognition, orientation is semantically meaningful (e.g., "Keep Left" vs. "Keep Right").
 
 ## Explainable AI (Grad-CAM Integration)
-To verify that the CNN is learning relevant features (e.g., the symbol on the sign) and not just background noise, I implemented a **Gradient-weighted Class Activation Mapping (Grad-CAM)** script.
+To ensure the model is not a "black box," I implemented a **Gradient-weighted Class Activation Mapping (Grad-CAM)** utility. This tool extracts feature maps from the final convolutional layer to visualize where the network focuses its attention during inference.
 
-The `gradcam.py` tool extracts the feature maps from the final convolutional layer and overlays an attention heatmap onto the original image.
+
+
+* **Logic:** Computes the average of the gradients of the predicted class with respect to the feature maps.
+* **Result:** Validates that the model focuses on the central symbol rather than background noise or lighting artifacts.
 
 ## Repository Structure
-* `traffic.py`: The training pipeline with the optimized (Exp 2.9) CNN architecture.
-* `gradcam.py`: Diagnostic tool for visualizing the network's attention regions.
+* `traffic.py`: Training pipeline using the optimized (Exp 2.9) architecture.
+* `gradcam.py`: Diagnostic tool for XAI (Explainable AI) visualization.
 * `requirements.txt`: Environment dependencies.
 
-## Dataset Setup
-The GTSRB dataset is not included in this repository due to size constraints. 
-To run this project:
-1. Download the dataset from [Kaggle - GTSRB](https://www.kaggle.com/datasets/meowmeowmeowmeowmeow/gtsrb-german-traffic-sign).
-2. Extract the contents into a folder named `data/` in the root directory.
-3. Ensure the structure is `data/train/0...42/`.
+## Setup & Usage
 
-## Usage
-**1. Train the model:**
+### 1. Dataset Setup
+1. Download the GTSRB dataset from [Kaggle](https://www.kaggle.com/datasets/meowmeowmeowmeowmeow/gtsrb-german-traffic-sign).
+2. Extract into a `data/` directory. Ensure the structure is `data/train/0...42/`.
+
+### 2. Execution
 ```bash
-python traffic.py data_directory model.h5
+# Train the model
+python traffic.py data/ model.h5
+
+# Visual Analysis (Grad-CAM)
+python gradcam.py sample_sign.ppm model.h5
