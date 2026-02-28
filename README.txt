@@ -7,8 +7,6 @@ The goal of this project is to design and optimize a Convolutional Neural Networ
 ## Engineering Methodology: Architecture Search
 Instead of using a generic template, I conducted a systematic architecture search to identify the most efficient model for real-time deployment.
 
-
-
 | Exp | Modification | Accuracy | Latency | Engineering Verdict |
 | :--- | :--- | :--- | :--- | :--- |
 | **Baseline** | Standard 2-Layer CNN | 96.6% | 1.0 ms | Fast, but lacks depth for complex features. |
@@ -22,14 +20,12 @@ Instead of using a generic template, I conducted a systematic architecture searc
 ## Explainable AI (Grad-CAM Integration)
 To ensure the model is not a "black box," I implemented a **Gradient-weighted Class Activation Mapping (Grad-CAM)** utility. This tool extracts feature maps from the final convolutional layer to visualize where the network focuses its attention during inference.
 
-
-
 * **Logic:** Computes the average of the gradients of the predicted class with respect to the feature maps.
-* **Result:** Validates that the model focuses on the central symbol rather than background noise or lighting artifacts.
+* **Result:** Validates that the model focuses on the central symbol rather than background noise.
 
 ## Repository Structure
 * `traffic.py`: Training pipeline using the optimized (Exp 2.9) architecture.
-* `gradcam.py`: Diagnostic tool for XAI (Explainable AI) visualization.
+* `gradcam.py`: Diagnostic tool for XAI visualization.
 * `requirements.txt`: Environment dependencies.
 
 ## Setup & Usage
